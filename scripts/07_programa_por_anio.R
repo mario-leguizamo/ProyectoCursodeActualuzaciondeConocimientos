@@ -77,8 +77,9 @@ grafico <- ggplot() +
         legend.position = "none",
         plot.margin = margin(20, 52, 46, 172))
 
-# 4. Mostrarlo y guardarlo (el archivo guardado es el que tiene las proporciones correctas)
-print(grafico)
+# 4. Guardarlo y abrir la imagen
+# No se dibuja en el panel Plots de RStudio: ese panel es ancho y bajo y deforma el grafico,
+# que esta hecho para una hoja vertical de 15 x 19 cm. La imagen guardada es la correcta.
 carpeta <- if (dir.exists("resultados")) "resultados" else path.expand("~")
 archivo <- file.path(carpeta, "07_programa_por_anio_R.png")
 ggsave(archivo, grafico, width = 15, height = 19, units = "cm", dpi = 300)
