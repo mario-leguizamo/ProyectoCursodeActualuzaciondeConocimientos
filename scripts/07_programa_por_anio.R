@@ -22,7 +22,7 @@ celdas$valor <- 0
 celdas$valor[(match(tabla$anio, anios) - 1) * nf + match(tabla$programa, programas)] <- tabla$maestrantes
 celdas$id <- seq_len(nrow(celdas))
 vmax <- max(celdas$valor)
-tono <- function(v) 0.08 + 0.92 * (v / vmax)^0.55               # escala no lineal: los valores bajos tambien se distinguen
+tono <- function(v) 0.10 + 0.90 * (v / vmax)^0.50               # escala no lineal: 1, 2 y 3 se distinguen entre si
 celdas$tono <- tono(celdas$valor)
 
 # 2. Piezas del grafico
@@ -38,7 +38,7 @@ formas <- do.call(rbind, Map(redondeada, celdas$id, celdas$col, -celdas$fila))
 formas$valor <- celdas$valor[formas$id]; formas$tono <- celdas$tono[formas$id]
 
 # nombres, totales y anios: letra negra sobre fondo blanco, con una franja gris clara en filas y columnas alternas
-negro <- "#111827"; franja <- "#e9ecf1"; oscuro <- "#0b1020"; gris <- "#aab5d0"
+negro <- "#111827"; franja <- "#e9ecf1"; gris <- "#4b5563"
 izq <- -7.0; der <- nc + 1.6                                     # borde izquierdo (nombres) y derecho (totales) de la figura
 nombres <- data.frame(fila = seq_len(nf), texto = sapply(sub("^Maestr.a en ", "", programas), function(t) paste(strwrap(t, 42), collapse = "\n")))
 totales <- data.frame(fila = seq_len(nf), texto = as.character(total[programas]))
@@ -46,12 +46,14 @@ cabecera <- data.frame(col = seq_len(nc), texto = as.character(anios))
 filas_gris <- data.frame(fila = seq(2, nf, by = 2))
 cols_gris <- data.frame(col = seq(2, nc, by = 2))
 
-# escala de color, dibujada con franjas delgadas debajo del mapa (dentro de la zona oscura)
+llenas <- celdas[celdas$valor > 0, ]                            # el numero va en oscuro sobre las celdas claras y en blanco sobre las oscuras
+
+# escala de color, dibujada con franjas delgadas debajo del mapa
 largo <- 2.9; x0 <- 0.6; y_escala <- -(nf + 0.95)
 tiras <- data.frame(x = x0 + largo * (seq_len(300) - 1) / 300, tono = seq_len(300) / 300)
 marcas <- pretty(c(0, vmax), 4); marcas <- unique(c(marcas[marcas > 0 & tono(marcas) <= tono(vmax) - 0.12], vmax))
 rotulos <- data.frame(x = x0 + largo * tono(marcas), texto = as.character(marcas))
-rampa <- c("#5a1822", "#8e1d2b", "#c4242c", "#e8392f", "#ff5a45")          # un solo color: del rojo vino (pocos) al rojo vivo (muchos)
+rampa <- c("#fde3dc", "#fcbba1", "#fb7b5b", "#e32f27", "#a50f15", "#5c0010")    # un solo color: rojo claro (pocos) a rojo oscuro (muchos)
 
 # 3. Grafico
 grafico <- ggplot() +
@@ -59,11 +61,10 @@ grafico <- ggplot() +
   geom_rect(data = filas_gris, aes(xmin = izq, xmax = 0.5, ymin = -fila - 0.5, ymax = -fila + 0.5), fill = franja) +
   geom_rect(data = filas_gris, aes(xmin = nc + 0.5, xmax = der, ymin = -fila - 0.5, ymax = -fila + 0.5), fill = franja) +
   geom_rect(data = cols_gris, aes(xmin = col - 0.5, xmax = col + 0.5, ymin = -0.5, ymax = 0.35), fill = franja) +
-  # zona oscura: el mapa de calor y, debajo, su escala de color
-  annotate("rect", xmin = 0.5, xmax = nc + 0.5, ymin = -(nf + 2.0), ymax = -0.5, fill = oscuro) +
-  geom_polygon(data = formas[formas$valor == 0, ], aes(x = x, y = y, group = id), fill = "#1a2440") +
+  # el mapa de calor: celdas vacias en gris muy claro y celdas con maestrantes en rojo
+  geom_polygon(data = formas[formas$valor == 0, ], aes(x = x, y = y, group = id), fill = "#eef0f4") +
   geom_polygon(data = formas[formas$valor > 0, ], aes(x = x, y = y, group = id, fill = tono)) +
-  geom_text(data = celdas[celdas$valor > 0, ], aes(x = col, y = -fila, label = valor), colour = "white", fontface = "bold", size = 3.5) +
+  geom_text(data = llenas, aes(x = col, y = -fila, label = valor), colour = ifelse(llenas$tono < 0.52, "#3b0a10", "white"), fontface = "bold", size = 3.5) +
   geom_text(data = nombres, aes(x = 0.30, y = -fila, label = texto), colour = negro, size = 2.85, hjust = 1, lineheight = 0.82) +
   geom_text(data = totales, aes(x = nc + 1.05, y = -fila, label = texto), colour = negro, fontface = "bold", size = 3.7) +
   geom_text(data = cabecera, aes(x = col, y = -0.08, label = texto), colour = negro, size = 2.95) +
