@@ -77,12 +77,15 @@ grafico <- ggplot() +
         legend.position = "none",
         plot.margin = margin(20, 52, 46, 172))
 
-# 4. Mostrarlo y guardarlo
-# En RStudio: pestana Plots, boton Zoom, y maximizar la ventana (en el panel pequeno se ve apretado).
-# La imagen guardada (hoja vertical de 15 x 19 cm) es la que tiene las proporciones exactas.
-print(grafico)
+# 4. Guardarlo y mostrarlo
 carpeta <- if (dir.exists("resultados")) "resultados" else path.expand("~")
 archivo <- file.path(carpeta, "07_programa_por_anio_R.png")
 ggsave(archivo, grafico, width = 15, height = 19, units = "cm", dpi = 300)
+
+# En RStudio se muestra la imagen guardada, no el grafico "vivo": asi se ve con sus proporciones exactas
+# y no se deforma al cambiar el tamano de la ventana (pestana Plots; con Zoom se ve mas grande).
+if (!requireNamespace("png", quietly = TRUE)) install.packages("png", repos = "https://cloud.r-project.org")
+grid::grid.newpage()
+grid::grid.rect(gp = grid::gpar(fill = "#0b1020", col = NA))
+grid::grid.raster(png::readPNG(archivo))
 cat("Listo. El grafico se guardo en:", archivo, "\n")
-if (interactive()) browseURL(archivo)
