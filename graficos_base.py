@@ -42,6 +42,7 @@ from matplotlib.patches import Patch, FancyBboxPatch
 # ------------------------------------------------------------------------------------------------ estilo
 # Para cambiar la apariencia de TODOS los gráficos se cambian solo estas líneas.
 FONDO, PANEL, REJA, TXT, SUB = "#0b1020", "#121a30", "#2a3759", "#f2f4f8", "#aab5d0"
+TXT2 = "#8fd0ff"                   # celeste: segundo color de texto, para alternar filas y columnas en el mapa de calor
 RAMPA = LinearSegmentedColormap.from_list("base", ["#3d5af1", "#7a5cd6", "#c45aa8", "#ff8a3d", "#ff3b30"])   # degradado principal
 RAMPA_A = LinearSegmentedColormap.from_list("a", ["#c45aa8", "#ff8a3d", "#ffb347"])                          # serie izquierda de la pirámide
 RAMPA_B = LinearSegmentedColormap.from_list("b", ["#7a5cd6", "#3d5af1", "#39a0f2"])                          # serie derecha de la pirámide
@@ -342,7 +343,8 @@ def cajas(grupos, ruta, eje="Valor", unidad="", tope=None, mediana_general=True,
 
 def mapa_calor(filas, columnas, matriz, ruta, eje="Cantidad", total=True, alto=None, titulo=None, subtitulo=None, fuente=None):
     """Cruce de dos variables. filas y columnas son las etiquetas; matriz[i][j] es el valor de la fila i en la columna j.
-    El color y el número de cada celda son el valor; las celdas en cero quedan sin número. total=True añade la suma de cada fila."""
+    El color y el número de cada celda son el valor; las celdas en cero quedan sin número. total=True añade la suma de cada fila.
+    Los nombres de las filas, sus totales y los encabezados de las columnas alternan entre blanco y celeste."""
     et = [_env(f, 40) for f in filas]; nf, nc = len(filas), len(columnas)
     vmax = max(max(r) for r in matriz); norma = PowerNorm(0.55, vmin=0, vmax=vmax)       # escala no lineal: los valores bajos también se distinguen
     tono = lambda v: 0.08 + 0.92 * float(norma(v))
@@ -357,10 +359,12 @@ def mapa_calor(filas, columnas, matriz, ruta, eje="Cantidad", total=True, alto=N
             ax.add_patch(FancyBboxPatch((j - 0.45, i - 0.42), 0.90, 0.84, boxstyle="round,pad=0,rounding_size=0.06",
                                         facecolor=RAMPA(tono(v)) if v else "#1a2440", edgecolor="none", zorder=3))
             if v: ax.text(j, i, num(v), ha="center", va="center_baseline", fontsize=10, fontweight="bold", color="white", zorder=4)
-        if total: ax.text(nc - 0.30, i, num(sum(matriz[i])), ha="left", va="center_baseline", fontsize=10.5, fontweight="bold", color=TXT, clip_on=False)
+        if total: ax.text(nc - 0.30, i, num(sum(matriz[i])), ha="left", va="center_baseline", fontsize=10.5, fontweight="bold", color=TXT2 if i % 2 else TXT, clip_on=False)
     ax.set_yticks(range(nf)); ax.set_yticklabels(et, color=TXT, fontsize=8.8, linespacing=1.0)
     ax.set_xticks(range(nc)); ax.set_xticklabels([_env(c, 12) for c in columnas], color=TXT, fontsize=8.4, linespacing=1.0)
     ax.xaxis.tick_top(); ax.tick_params(length=0, pad=4)
+    for k, t in enumerate(ax.get_yticklabels()): t.set_color(TXT2 if k % 2 else TXT)          # filas y columnas alternan entre blanco y celeste,
+    for k, t in enumerate(ax.get_xticklabels()): t.set_color(TXT2 if k % 2 else TXT)          # para seguir cada una con la vista
     ax.set_xlim(-0.55, nc - 0.45); ax.set_ylim(nf - 0.5, -0.5)
     if total: ax.annotate("Total", (1, 1), xycoords="axes fraction", xytext=(5, 6), textcoords="offset points", ha="left", va="bottom", fontsize=8.6, color=SUB, annotation_clip=False)
     cax = fig.add_axes([izq / ANCHO, (0.62 + g["ex_i"]) / H, 4.2 / ANCHO, 0.22 / H])                    # escala de color
