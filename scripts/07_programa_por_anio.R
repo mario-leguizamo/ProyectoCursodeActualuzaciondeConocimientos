@@ -82,10 +82,12 @@ carpeta <- if (dir.exists("resultados")) "resultados" else path.expand("~")
 archivo <- file.path(carpeta, "07_programa_por_anio_R.png")
 ggsave(archivo, grafico, width = 15, height = 19, units = "cm", dpi = 300)
 
-# En RStudio se muestra la imagen guardada, no el grafico "vivo": asi se ve con sus proporciones exactas
-# y no se deforma al cambiar el tamano de la ventana (pestana Plots; con Zoom se ve mas grande).
-if (!requireNamespace("png", quietly = TRUE)) install.packages("png", repos = "https://cloud.r-project.org")
+# En RStudio el grafico se dibuja dentro de un marco que conserva la proporcion de la hoja (15 x 19):
+# no se estira con la ventana y la letra sale nitida. Para verlo bien: pestana Plots, Zoom y maximizar.
 grid::grid.newpage()
 grid::grid.rect(gp = grid::gpar(fill = "#0b1020", col = NA))
-grid::grid.raster(png::readPNG(archivo))
+grid::pushViewport(grid::viewport(layout = grid::grid.layout(1, 1, widths = grid::unit(15, "null"),
+                                                             heights = grid::unit(19, "null"), respect = TRUE)))
+print(grafico, vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 1))
+grid::popViewport()
 cat("Listo. El grafico se guardo en:", archivo, "\n")
