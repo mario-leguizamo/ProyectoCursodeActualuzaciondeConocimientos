@@ -44,6 +44,11 @@ python scripts/05_distancia_por_aula.py
 Cada script se ejecuta por separado y vuelve a crear únicamente su figura.
 Para usar un gráfico en otro trabajo se copian su script y `graficos_base.py`, y se cambia la tabla de datos.
 
+## Versión en R
+
+El mapa de calor también está en R: `scripts/07_programa_por_anio.R` (ggplot2), con resultado en `resultados/07_programa_por_anio_R.png`.
+Se puede pegar y ejecutar en RStudio sin descargar nada: si no encuentra la tabla en la carpeta de trabajo, la lee directamente de este repositorio.
+
 ## Sobre los datos
 
 - Las tablas salen del formulario de preinscripción en línea del Curso. Solo contienen conteos y valores agregados.
