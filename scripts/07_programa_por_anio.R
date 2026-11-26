@@ -38,7 +38,7 @@ formas <- do.call(rbind, Map(redondeada, celdas$id, celdas$col, -celdas$fila))
 formas$valor <- celdas$valor[formas$id]; formas$tono <- celdas$tono[formas$id]
 
 # nombres, totales y anios: letra negra sobre fondo blanco, con una franja gris clara en filas y columnas alternas
-negro <- "#111827"; franja <- "#e9ecf1"; gris <- "#4b5563"
+negro <- "#111827"; franja <- "#e9ecf1"; oscuro <- "#0b1020"; gris <- "#aab5d0"
 izq <- -7.0; der <- nc + 1.6                                     # borde izquierdo (nombres) y derecho (totales) de la figura
 nombres <- data.frame(fila = seq_len(nf), texto = sapply(sub("^Maestr.a en ", "", programas), function(t) paste(strwrap(t, 42), collapse = "\n")))
 totales <- data.frame(fila = seq_len(nf), texto = as.character(total[programas]))
@@ -46,14 +46,17 @@ cabecera <- data.frame(col = seq_len(nc), texto = as.character(anios))
 filas_gris <- data.frame(fila = seq(2, nf, by = 2))
 cols_gris <- data.frame(col = seq(2, nc, by = 2))
 
-llenas <- celdas[celdas$valor > 0, ]                            # el numero va en oscuro sobre las celdas claras y en blanco sobre las oscuras
+llenas <- celdas[celdas$valor > 0, ]                            # el numero va en blanco, y en oscuro solo sobre las celdas mas claras
 
-# escala de color, dibujada con franjas delgadas debajo del mapa
+# escala de color, dibujada con franjas delgadas debajo del mapa (dentro de la zona oscura)
 largo <- 2.9; x0 <- 0.6; y_escala <- -(nf + 0.95)
 tiras <- data.frame(x = x0 + largo * (seq_len(300) - 1) / 300, tono = seq_len(300) / 300)
 marcas <- pretty(c(0, vmax), 4); marcas <- unique(c(marcas[marcas > 0 & tono(marcas) <= tono(vmax) - 0.12], vmax))
 rotulos <- data.frame(x = x0 + largo * tono(marcas), texto = as.character(marcas))
-rampa <- c("#fde3dc", "#fcbba1", "#fb7b5b", "#e32f27", "#a50f15", "#5c0010")    # un solo color: rojo claro (pocos) a rojo oscuro (muchos)
+# un solo color, sobre fondo oscuro: rojo vino apagado (pocos) -> rojo vivo -> rojo muy claro (muchos).
+# Los tonos estan repartidos para que 1, 2, 3 y los valores altos se distingan entre si.
+rampa <- c("#3a0d16", "#6b1420", "#a01c2a", "#cf2a2c", "#e8402f", "#f4553f", "#f96a52", "#ff9a8a", "#ffd3cc")
+pasos <- c(0, 0.28, 0.39, 0.47, 0.54, 0.64, 0.69, 0.88, 1)
 
 # 3. Grafico
 grafico <- ggplot() +
@@ -61,10 +64,11 @@ grafico <- ggplot() +
   geom_rect(data = filas_gris, aes(xmin = izq, xmax = 0.5, ymin = -fila - 0.5, ymax = -fila + 0.5), fill = franja) +
   geom_rect(data = filas_gris, aes(xmin = nc + 0.5, xmax = der, ymin = -fila - 0.5, ymax = -fila + 0.5), fill = franja) +
   geom_rect(data = cols_gris, aes(xmin = col - 0.5, xmax = col + 0.5, ymin = -0.5, ymax = 0.35), fill = franja) +
-  # el mapa de calor: celdas vacias en gris muy claro y celdas con maestrantes en rojo
-  geom_polygon(data = formas[formas$valor == 0, ], aes(x = x, y = y, group = id), fill = "#eef0f4") +
+  # zona oscura: el mapa de calor y, debajo, su escala de color
+  annotate("rect", xmin = 0.5, xmax = nc + 0.5, ymin = -(nf + 2.0), ymax = -0.5, fill = oscuro) +
+  geom_polygon(data = formas[formas$valor == 0, ], aes(x = x, y = y, group = id), fill = "#1a2440") +
   geom_polygon(data = formas[formas$valor > 0, ], aes(x = x, y = y, group = id, fill = tono)) +
-  geom_text(data = llenas, aes(x = col, y = -fila, label = valor), colour = ifelse(llenas$tono < 0.52, "#3b0a10", "white"), fontface = "bold", size = 3.5) +
+  geom_text(data = llenas, aes(x = col, y = -fila, label = valor), colour = ifelse(llenas$tono > 0.80, "#3b0a10", "white"), fontface = "bold", size = 3.5) +
   geom_text(data = nombres, aes(x = 0.30, y = -fila, label = texto), colour = negro, size = 2.85, hjust = 1, lineheight = 0.82) +
   geom_text(data = totales, aes(x = nc + 1.05, y = -fila, label = texto), colour = negro, fontface = "bold", size = 3.7) +
   geom_text(data = cabecera, aes(x = col, y = -0.08, label = texto), colour = negro, size = 2.95) +
@@ -72,7 +76,7 @@ grafico <- ggplot() +
   geom_rect(data = tiras, aes(xmin = x, xmax = x + largo / 300 + 0.01, ymin = y_escala - 0.13, ymax = y_escala + 0.13, fill = tono)) +
   geom_text(data = rotulos, aes(x = x, y = y_escala - 0.50, label = texto), colour = gris, size = 3.0) +
   annotate("text", x = x0 + largo + 0.25, y = y_escala, label = "N\u00famero de maestrantes", colour = gris, size = 3.2, hjust = 0) +
-  scale_fill_gradientn(colours = rampa, limits = c(0, 1)) +
+  scale_fill_gradientn(colours = rampa, values = pasos, limits = c(0, 1)) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(xlim = c(izq, der), ylim = c(-(nf + 2.0), 0.35)) +
