@@ -51,7 +51,7 @@ largo <- 2.9; x0 <- 0.6; y_escala <- -(nf + 0.95)
 tiras <- data.frame(x = x0 + largo * (seq_len(300) - 1) / 300, tono = seq_len(300) / 300)
 marcas <- pretty(c(0, vmax), 4); marcas <- unique(c(marcas[marcas > 0 & tono(marcas) <= tono(vmax) - 0.12], vmax))
 rotulos <- data.frame(x = x0 + largo * tono(marcas), texto = as.character(marcas))
-rampa <- c("#3d5af1", "#7a5cd6", "#c45aa8", "#ff8a3d", "#ff3b30")
+rampa <- c("#5a1822", "#8e1d2b", "#c4242c", "#e8392f", "#ff5a45")          # un solo color: del rojo vino (pocos) al rojo vivo (muchos)
 
 # 3. Grafico
 grafico <- ggplot() +
