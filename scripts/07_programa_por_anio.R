@@ -46,17 +46,17 @@ cabecera <- data.frame(col = seq_len(nc), texto = as.character(anios))
 filas_gris <- data.frame(fila = seq(2, nf, by = 2))
 cols_gris <- data.frame(col = seq(2, nc, by = 2))
 
-llenas <- celdas[celdas$valor > 0, ]                            # el numero va en blanco, y en oscuro solo sobre las celdas mas claras
+llenas <- celdas[celdas$valor > 0, ]                            # el numero va en oscuro sobre las celdas claras y en blanco sobre las rojas
 
 # escala de color, dibujada con franjas delgadas debajo del mapa (dentro de la zona oscura)
 largo <- 2.9; x0 <- 0.6; y_escala <- -(nf + 0.95)
 tiras <- data.frame(x = x0 + largo * (seq_len(300) - 1) / 300, tono = seq_len(300) / 300)
 marcas <- pretty(c(0, vmax), 4); marcas <- unique(c(marcas[marcas > 0 & tono(marcas) <= tono(vmax) - 0.12], vmax))
 rotulos <- data.frame(x = x0 + largo * tono(marcas), texto = as.character(marcas))
-# un solo color, sobre fondo oscuro: rojo vino apagado (pocos) -> rojo vivo -> rojo muy claro (muchos).
-# Los tonos estan repartidos para que 1, 2, 3 y los valores altos se distingan entre si.
-rampa <- c("#3a0d16", "#6b1420", "#a01c2a", "#cf2a2c", "#e8402f", "#f4553f", "#f96a52", "#ff9a8a", "#ffd3cc")
-pasos <- c(0, 0.28, 0.39, 0.47, 0.54, 0.64, 0.69, 0.88, 1)
+# un solo color: casi blanco (1 maestrante) -> rosado -> rojo intenso (el valor mas alto).
+# Los tonos estan repartidos para que cada valor se distinga del siguiente.
+rampa <- c("#ffffff", "#fbeeea", "#ffd3ca", "#ffb5a6", "#ff9783", "#ff7a63", "#f95a44", "#f04030", "#e61e1e", "#dc0010")
+pasos <- c(0, 0.32, 0.42, 0.49, 0.55, 0.60, 0.65, 0.70, 0.88, 1)
 
 # 3. Grafico
 grafico <- ggplot() +
@@ -68,7 +68,7 @@ grafico <- ggplot() +
   annotate("rect", xmin = 0.5, xmax = nc + 0.5, ymin = -(nf + 2.0), ymax = -0.5, fill = oscuro) +
   geom_polygon(data = formas[formas$valor == 0, ], aes(x = x, y = y, group = id), fill = "#1a2440") +
   geom_polygon(data = formas[formas$valor > 0, ], aes(x = x, y = y, group = id, fill = tono)) +
-  geom_text(data = llenas, aes(x = col, y = -fila, label = valor), colour = ifelse(llenas$tono > 0.80, "#3b0a10", "white"), fontface = "bold", size = 3.5) +
+  geom_text(data = llenas, aes(x = col, y = -fila, label = valor), colour = ifelse(llenas$tono < 0.62, "#3b0a10", "white"), fontface = "bold", size = 3.5) +
   geom_text(data = nombres, aes(x = 0.30, y = -fila, label = texto), colour = negro, size = 2.85, hjust = 1, lineheight = 0.82) +
   geom_text(data = totales, aes(x = nc + 1.05, y = -fila, label = texto), colour = negro, fontface = "bold", size = 3.7) +
   geom_text(data = cabecera, aes(x = col, y = -0.08, label = texto), colour = negro, size = 2.95) +
